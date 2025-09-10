@@ -1,0 +1,23 @@
+body{
+    background-color: #3af7c8;
+    font-size : 24px;
+}
+
+h1{
+    font-size : 2em;
+}
+
+div{
+    text-align: left;
+    border: solid #7121a7;
+    margin: 90px, 90px, 90px, 90px;
+    padding: 20px, 100px, 20px, 100px;
+
+}
+
+.caja-nombre{
+    
+    padding: 20px, 100px, 20px, 100px;
+    display: flex;
+    flex-direction: row;
+}
