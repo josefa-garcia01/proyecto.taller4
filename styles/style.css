@@ -7,6 +7,26 @@ h1 {
     text-align: center;
 }
 
+.task-person-group {
+    display: flex;
+    padding-left: 150px;
+    padding-bottom: 20px;
+}
+
+.task-box {
+    padding-left: 10px;
+    color: red;
+    width: 30%;
+    border: 3px solid red;
+}
+
+.person-box {
+    padding-left: 10px;
+    color: red;
+    width: 30%;
+    border: 3px solid red;
+}
+
 .page-title {
     font-size: 50px;
 }

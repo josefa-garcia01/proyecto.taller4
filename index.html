@@ -10,20 +10,39 @@
     </head>
     <body style="display: flex;">
         <!--En qué tags es más conveniente aplicar los bordes?-->
-        <main style="width: 70%; border-right: solid black 5px;">
-            <h1 id="page-title">Vive organizado Vive en paz</h1>
+        <main style="width: 70%;">
+            <h1 id="page-title" style="padding-bottom: 100px;">Vive organizado Vive en paz</h1>
+            <!--Arreglar los tags siguientes hasta </main>-->
+            <div class="task-person-group">
+                <div class="task-box"># NombreTarea 1</div>
+                <div class="person-box"># NombreResponsable</div>
+            </div>
+            <div class="task-person-group">
+                <div class="task-box"># NombreTarea 2</div>
+                <div class="person-box"># NombreResponsable</div>
+            </div>
+            <div class="task-person-group">
+                <div class="task-box"># NombreTarea 3</div>
+                <div class="person-box"># NombreResponsable</div>
+            </div>
+            <div class="task-person-group">
+                <div id="agregar-tarea" class="task-box" style="border: 6px solid red;">Agregar Tarea</div>
+                <div style="font-size: large; text-align: center; border: 6px solid red; width: 25px;">+</div>
+            </div>
         </main>
         
         <!--Es semánticamente correcto usar aside para una sidebar? Debería estar dentro o fuera de main?-->
         <aside>
-            <div id="notifications">
+            <div id="notifications" style="border: solid black 5px;">
                 <img src="assets/images/bell-icon.png" alt="Imagen de una pequeña campana sin color" width="30px" height="30px">
                 <p style="margin: 20px; padding: 10px; border: solid black 3px">
                     Persona X tiene Y semanas sin hacer Z tarea!
                 </p>
             </div>
-            <div id="house-info">
-                
+            <div id="house-info" style="border: solid black 5px; height: 800px;">
+                <p style="margin: 20px; padding: 10px; border: solid black 3px; width: 30%;">
+                    # NombreCasa
+                </p>                
             </div>
         </aside>
     </body>
