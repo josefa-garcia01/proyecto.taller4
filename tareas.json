@@ -1,0 +1,65 @@
+{
+  "tareas": [
+    {
+      "id": 1,
+      "nombre": "Lavar platos",
+      "tipo": "cocina"
+    },
+    {
+      "id": 2,
+      "nombre": "Limpiar baño",
+      "tipo": "aseo"
+    },
+    {
+      "id": 3,
+      "nombre": "lavar ropa",
+      "tipo": "ropa"
+    },
+    {
+      "id": 4,
+      "nombre": "Barrido de suelos",
+      "tipo": "aseo"
+    },
+    {
+      "id": 5,
+      "nombre": "doblar ropa",
+      "tipo": "ropa"
+    },
+    {
+      "id": 6,
+      "nombre": "limpiar areneros",
+      "tipo": "mascotas"
+    },
+     {
+      "id": 7,
+      "nombre": "pasear perros",
+      "tipo": "mascotas"
+    },
+     {
+      "id": 8,
+      "nombre": "bañar animales",
+      "tipo": "mascotas"
+    },
+     {
+      "id": 9,
+      "nombre": "aspirar piezas",
+      "tipo": "aseo"
+    },
+     {
+      "id": 10,
+      "nombre": "cocinar",
+      "tipo": "cocina"
+    },
+     {
+      "id": 11,
+      "nombre": "comprar mercaderia",
+      "tipo": "compras"
+    },
+     {
+      "id": 12,
+      "nombre": "trapear",
+      "tipo": "aseo"
+    }
+
+  ]
+}
