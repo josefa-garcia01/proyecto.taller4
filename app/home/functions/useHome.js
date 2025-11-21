@@ -70,6 +70,23 @@ export default function useHome(homes, initialHomeId){
         }
     }
 
+    async function assignMember(memberId, taskId){
+        try{
+            const res = await fetch('./api/tasks', {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify({memberId, taskId}),
+            });
+
+            if (!res.ok) throw new Error('Failed to assign Member');
+            return true;
+        } catch (err) {
+            console.error('Error assigning member:', err);
+            return false;
+        }
+    }
+
 
 
 
@@ -104,23 +121,28 @@ export default function useHome(homes, initialHomeId){
     }
 
 
-    async function addTask(homeId, taskId){
-        try{
-            const res = await fetch('./api/tasks', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include',
-                body: JSON.stringify({homeId, taskId}),
+    async function addTask(newTask){
+        try {
+            const response = await fetch("/api/tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newTask),
             });
 
-            if (!res.ok) throw new Error('Failed to add Task');
-            const newTask = await res.json();
+            if (!response.ok) {
+                throw new Error("AddTask returned an error");
+            }
 
-            setTasks(prev => [...prev, newTask.assignedTasksx]);  //componente de react para actualizar lista en tiempo real
+            const data = await response.json();
+
+            setTasks(prev => [...prev, data.task]);
+
         } catch (err) {
-            console.error('Error adding task:', err);
+            console.error("Error al crear tarea:", err);
         }
+
     }
+
 
     async function deleteTask(taskId){
         try{
@@ -143,6 +165,7 @@ export default function useHome(homes, initialHomeId){
         }
     }
 
-    return {currentHome, currentHomeId, setCurrentHomeId, members, addMember, displayMember, deleteMember, 
+    return {currentHome, currentHomeId, setCurrentHomeId, members, 
+        addMember, displayMember, deleteMember, assignMember,
         displayDefaultTask, displayTask, addTask, deleteTask};
 }

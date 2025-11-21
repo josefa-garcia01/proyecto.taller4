@@ -21,6 +21,7 @@ export async function GET() {
                 a.home_id,
                 a.task_id,
                 a.member_id,
+                m.name AS member_name,
                 a.status,
                 a.year,
                 a.semana,
@@ -28,8 +29,8 @@ export async function GET() {
                 d.category,
                 d.description
             FROM assigned_tasks a
-            JOIN default_tasks d
-                ON a.task_id = d.id
+            JOIN default_tasks d ON a.task_id = d.id
+            LEFT JOIN members m ON a.member_id = m.id
             WHERE a.home_id = ${homeId}
             ORDER BY a.id ASC
         `;
@@ -46,21 +47,47 @@ export async function GET() {
 
 
 export async function POST(req) {
-    try{
-        const {homeId, taskId} = await req.json();
+    try {
+        const body = await req.json();
 
-        if (!homeId || !taskId)
-            return NextResponse.json({error: "Missing Fields"}, {status: 400});
+        const {
+            homeId,
+            title,
+            description,
+            category,
+            frequency_type,
+            frequency_value,
+            next_due_date,
+            member_id
+        } = body;
+
+        // Validate REQUIRED fields
+        /*if (!homeId || !title || !next_due_date) {
+            return NextResponse.json(
+                { error: "Missing required fields" },
+                { status: 400 }
+            );
+        }*/
 
         const result = await sql`
-            INSERT INTO assigned_tasks (home_id, task_id) VALUES (${homeId}, ${taskId}) RETURNING *`;
+            INSERT INTO assigned_tasks 
+                (home_id, title, description, category, 
+                 frequency_type, frequency_value, next_due_date, member_id)
+            VALUES 
+                (${homeId}, ${title}, ${description}, ${category},
+                 ${frequency_type}, ${frequency_value}, ${next_due_date}, ${member_id})
+            RETURNING *;
+        `;
 
-        return NextResponse.json({assignedTask: result[0]});
+        return NextResponse.json({ task: result[0] });
 
-        } catch (err) {
-            console.error(err);
-            return NextResponse.json ({error: 'Internal Server Error'}, {status: 500});
-        }
+    } catch (err) {
+        console.error("POST /api/tasks error:", err);
+        return NextResponse.json(
+            { error: "Internal Server Error" },
+            { status: 500 }
+        );
+    }
 }
 
 
@@ -85,4 +112,28 @@ export async function DELETE(req){
         console.error('Error deleting task:', err)
         return NextResponse.json({error: 'Failed to delete task'}, {status: 500})
     }
+}
+
+export async function PATCH(req){
+    const {memberId, taskId} = await req.json();
+
+    if (!memberId) {
+        return NextResponse.json({error: "Member required"}, {status:400})
+    }
+
+    const existing = await sql`SELECT member_id FROM assigned_tasks WHERE id = ${taskId}`
+
+    if (existing.length == 0){
+        return NextResponse.json({error: "Task doesn't exist"}, {status: 400});
+    }
+
+    if (existing[0].member_id){
+        return NextResponse.json({error: "Tarea ya asignada"}, {status:400});
+    }
+
+    //asignar
+    await sql `UPDATE assigned_tasks SET member_id = ${memberId} WHERE id = ${taskId}`
+
+    return NextResponse.json({success: true});
+
 }

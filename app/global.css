@@ -21,3 +21,41 @@
   padding: 2rem;
   border-radius: 10px;
 }
+
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999; /* Keep it above content */
+}
+
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 480px;
+    width: calc(100% - 40px);
+
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px; /* space between fields */
+}
+
+.frequency-row {
+  display: flex;
+  gap: 10px; /* space between dropdown and number input */
+  margin-bottom: 10px; /* optional spacing from other fields */
+}
+
+.frequency-row select,
+.frequency-row input {
+  flex: 1; /* optional: makes them share available width */
+}
