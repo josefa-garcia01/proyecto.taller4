@@ -251,7 +251,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
             <ul>
                 {tasks.map((t) => (
                 <li key={t.assigned_id}>
-                    {t.title} (AssignedTask ID: {t.assigned_id} || Task ID: {t.task_id})
+                    {t.title} (AssignedTask ID: {t.assigned_id})
 
                     {t.member_id ? (
                         <span> — Asignado a miembro {t.member_name}</span>

@@ -21,7 +21,7 @@ export default function ClientHome({homes, initialHomeId}) {
             <MemberAdd homes={homes} currentHome={currentHome} setMembers={setMembers}/>
             <MemberList homes={homes} currentHome={currentHome} members={members} setMembers={setMembers} selectedMember={selectedMember} setSelectedMember={setSelectedMember}/>
             <TaskAdd homes={homes} currentHome={currentHome} showSurvey={showSurvey} setShowSurvey={setShowSurvey}/>
-
+            <TaskList homes={homes} currentHome={currentHome} tasks={tasks} setTasks={setTasks} selectedMember={selectedMember} setSelectedMember={setSelectedMember}/>
 
         </div>
     )

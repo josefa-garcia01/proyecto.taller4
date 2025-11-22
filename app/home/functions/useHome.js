@@ -135,7 +135,8 @@ export default function useHome(homes, initialHomeId){
 
             const data = await response.json();
 
-            setTasks(prev => [...prev, data.task]);
+            const updated = await displayTask();
+            setTasks(updated);
 
         } catch (err) {
             console.error("Error al crear tarea:", err);

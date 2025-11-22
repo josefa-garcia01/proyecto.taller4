@@ -19,17 +19,15 @@ export async function GET() {
             SELECT 
                 a.id AS assigned_id,
                 a.home_id,
-                a.task_id,
                 a.member_id,
                 m.name AS member_name,
                 a.status,
-                a.year,
-                a.semana,
-                d.title,
-                d.category,
-                d.description
+                a.title,
+                a.category,
+                a.description,
+                a.frequency_type,
+                a.next_due_date
             FROM assigned_tasks a
-            JOIN default_tasks d ON a.task_id = d.id
             LEFT JOIN members m ON a.member_id = m.id
             WHERE a.home_id = ${homeId}
             ORDER BY a.id ASC
