@@ -28,56 +28,6 @@ export function MemberAdd ({homes, currentHome, setMembers}) {
 
 }
 
-function AddTaskForm({ closeModal }) {
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [frequencyType, setFrequencyType] = useState("days");
-  const [frequencyValue, setFrequencyValue] = useState(1);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    // Send to backend
-    fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        category,
-        frequency_type: frequencyType,
-        frequency_value: frequencyValue
-      })
-    });
-
-    closeModal();
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <h2>Add Task</h2>
-
-      <label>Title</label>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} />
-
-      <label>Category</label>
-      <input value={category} onChange={(e) => setCategory(e.target.value)} />
-
-      <label>Frequency Type</label>
-      <select value={frequencyType} onChange={(e) => setFrequencyType(e.target.value)}>
-        <option value="days">Days</option>
-        <option value="weekly">Weekly</option>
-      </select>
-
-      <label>Frequency Value</label>
-      <input type="number" value={frequencyValue}
-             onChange={(e) => setFrequencyValue(Number(e.target.value))} />
-
-      <button type="submit">Create</button>
-    </form>
-  );
-}
-
-
 export function TaskAdd ({homes, currentHome, showSurvey, setShowSurvey}) {
     const {addTask} = useHome(homes, currentHome);
 
@@ -142,6 +92,7 @@ export function TaskAdd ({homes, currentHome, showSurvey, setShowSurvey}) {
                 <label>Categoria:</label>
                 <input value={category} onChange={e => setCategory(e.target.value)} placeholder="Category" />
 
+
                 <div className="frequency-row">
                 <select value={frequencyType} onChange={e => setFrequencyType(e.target.value)}>
                     <option value="days">Days</option>
@@ -149,7 +100,7 @@ export function TaskAdd ({homes, currentHome, showSurvey, setShowSurvey}) {
                 </select>
                 <input
                     type="number"
-                    min={1}
+                    min={0}
                     value={frequencyValue}
                     onChange={e => setFrequencyValue(e.target.value)}
                     placeholder="Frequency"

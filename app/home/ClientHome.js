@@ -16,7 +16,6 @@ export default function ClientHome({homes, initialHomeId}) {
     return(
         <div>
             <h1>Current Home: {currentHome?.name}</h1>
-            
 
             <MemberAdd homes={homes} currentHome={currentHome} setMembers={setMembers}/>
             <MemberList homes={homes} currentHome={currentHome} members={members} setMembers={setMembers} selectedMember={selectedMember} setSelectedMember={setSelectedMember}/>
