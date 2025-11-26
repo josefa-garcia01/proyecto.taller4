@@ -34,6 +34,7 @@ export async function GET() {
         `;
         //assignedTasks ya no usa .id como identificador unico, ahora usa .assigned_id
 
+        //console.log("sql result:", result);
         return NextResponse.json({assignedTasks: result});
 
     } catch(err){
@@ -77,7 +78,8 @@ export async function POST(req) {
             RETURNING *;
         `;
 
-        return NextResponse.json({ task: result[0] });
+
+        return NextResponse.json([result[0]]);
 
     } catch (err) {
         console.error("POST /api/tasks error:", err);
@@ -126,7 +128,7 @@ export async function PATCH(req){
     }
 
     if (existing[0].member_id){
-        return NextResponse.json({error: "Tarea ya asignada"}, {status:400});
+        return NextResponse.json({error: "Task already assigned"}, {status:400});
     }
 
     //asignar

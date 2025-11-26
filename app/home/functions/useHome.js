@@ -4,8 +4,6 @@ import {useState} from 'react';
 
 export default function useHome(homes, initialHomeId){
     const [currentHomeId, setCurrentHomeId] = useState(initialHomeId);
-    const [members, setMembers] = useState([]);
-    const [tasks, setTasks] = useState([]);
     const currentHome = homes.find(h => h.id == parseInt(currentHomeId));
 
 
@@ -20,10 +18,6 @@ export default function useHome(homes, initialHomeId){
             });
 
             if (!res.ok) throw new Error('Failed to add Member');
-            const newMember = await res.json();
-
-            
-            setMembers(prev => [...prev, newMember]);  //componente de react para actualizar lista en tiempo real
         } catch (err) {
             console.error('Error adding member:', err);
         }
@@ -58,12 +52,6 @@ export default function useHome(homes, initialHomeId){
             });
 
             if (!res.ok) throw new Error('Failed to delete member');
-            
-            const data = await res.json();
-            
-            //actualizar componente de react
-            setMembers(prev => prev.filter(m => m.id != memberId)); //filter.() funcion con m que retorna un nuevo arreglo de todos los miembros EXCEPTO el memberId que se quiere eliminar
-            return data;
 
         } catch(err) {
             console.error('Error deleting members:', err);
@@ -112,6 +100,8 @@ export default function useHome(homes, initialHomeId){
             if (!res.ok) throw new Error('Failed to load assigned tasks');
 
             const data = await res.json();
+            console.log("data:", data);
+            
             return data.assignedTasks;
         } catch (err) {
             console.error('Error getting assigned tasks', err)
@@ -133,10 +123,6 @@ export default function useHome(homes, initialHomeId){
                 throw new Error("AddTask returned an error");
             }
 
-            const data = await response.json();
-
-            const updated = await displayTask();
-            setTasks(updated);
 
         } catch (err) {
             console.error("Error al crear tarea:", err);
@@ -154,19 +140,13 @@ export default function useHome(homes, initialHomeId){
             });
 
             if (!res.ok) throw new Error('Failed to delete task');
-            
-            const data = await res.json();
-            
-            //actualizar componente de react
-            setTasks(prev => prev.filter(t => t.assigned_id != taskId)); //filter.() funcion con m que retorna un nuevo arreglo de todos los miembros EXCEPTO el memberId que se quiere eliminar
-            return data;
-
+        
         } catch(err) {
             console.error('Error deleting task:', err);
         }
     }
 
-    return {currentHome, currentHomeId, setCurrentHomeId, members, 
+    return {currentHome, currentHomeId, setCurrentHomeId, 
         addMember, displayMember, deleteMember, assignMember,
         displayDefaultTask, displayTask, addTask, deleteTask};
 }

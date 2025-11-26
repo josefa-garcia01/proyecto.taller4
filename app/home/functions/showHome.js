@@ -28,8 +28,8 @@ export function MemberAdd ({homes, currentHome, setMembers}) {
 
 }
 
-export function TaskAdd ({homes, currentHome, showSurvey, setShowSurvey}) {
-    const {addTask} = useHome(homes, currentHome);
+export function TaskAdd ({homes, currentHome, tasks, setTasks, showSurvey, setShowSurvey}) {
+    const {addTask, displayTask} = useHome(homes, currentHome);
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -42,6 +42,7 @@ export function TaskAdd ({homes, currentHome, showSurvey, setShowSurvey}) {
         setDescription('');
         setFrequencyType('days');
         setFrequencyValue('');
+        setCategory('');
     }
 
     async function handleAddTask() {
@@ -69,8 +70,11 @@ export function TaskAdd ({homes, currentHome, showSurvey, setShowSurvey}) {
         };
 
         await addTask(newTask);
+        setTasks(await displayTask());
+
         setShowSurvey(false);
         resetFormFields();
+    
     }
 
     return (
@@ -197,12 +201,12 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
 
     return (
         <div>
-            <h2>Tareas del hogar:</h2>
-            {tasks.length > 0 ? (
+            <h2>Tareas que hacer:</h2>
+            {tasks.filter(t => t.status == "pending").length > 0 ? (
             <ul>
-                {tasks.map((t) => (
+                {tasks.filter(t => t.status == "pending").map((t) => (
                 <li key={t.assigned_id}>
-                    {t.title} (AssignedTask ID: {t.assigned_id})
+                    {t.title} (AssignedTask ID: {t.assigned_id} Status: {t.status})
 
                     {t.member_id ? (
                         <span> — Asignado a miembro {t.member_name}</span>
@@ -219,8 +223,99 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
                 ))}
             </ul>
             ) : (
-            <p>No se encontraron tareas.</p>
+            <p>No hay tareas por hacer.</p>
+            )}
+
+
+            <h2>Tareas completadas:</h2>
+            {tasks.filter(t => t.status == "done").length > 0 ? (
+            <ul>
+                {tasks.filter(t => t.status == "done").map((t) => (
+                <li key={t.assigned_id}>
+                    {t.title} (AssignedTask ID: {t.assigned_id} Status: {t.status})
+
+                    {t.member_id ? (
+                        <span> — Asignado a miembro {t.member_name}</span>
+                    ) : (
+                        <span> — Sin asignar</span>
+                    )}
+                </li>
+                ))}
+            </ul>
+            ) : (
+            <p>No se encontraron tareas completadas.</p>
             )}
         </div>
+
+
     )
 }
+
+/*
+return (
+    <div>
+        <h2>Tareas que hacer:</h2>
+
+        {tasks.filter(t => t.status === "pending").length > 0 ? (
+            <ul>
+                {tasks
+                    .filter(t => t.status === "pending")
+                    .map((t) => (
+                        <li key={t.assigned_id}>
+                            {t.title} — {t.status}
+
+                            {t.member_id ? (
+                                <span> — Asignado a {t.member_name}</span>
+                            ) : (
+                                <span> — Sin asignar</span>
+                            )}
+
+                            <button onClick={() => handleDeleteTask(t.assigned_id)}>
+                                Eliminar
+                            </button>
+
+                            {!t.member_id && (
+                                <button
+                                    disabled={!selectedMember}
+                                    onClick={() => handleAssignMember(t.assigned_id)}
+                                >
+                                    Asignar miembro
+                                </button>
+                            )}
+                        </li>
+                    ))}
+            </ul>
+        ) : (
+            <p>No hay tareas pendientes.</p>
+        )}
+
+        <h2>Tareas completadas:</h2>
+
+        {tasks.filter(t => t.status === "done").length > 0 ? (
+            <ul>
+                {tasks
+                    .filter(t => t.status === "done")
+                    .map((t) => (
+                        <li key={t.assigned_id}>
+                            {t.title} — {t.status}
+
+                            {t.member_id ? (
+                                <span> — Asignado a {t.member_name}</span>
+                            ) : (
+                                <span> — Sin asignar</span>
+                            )}
+
+                            <button onClick={() => handleDeleteTask(t.assigned_id)}>
+                                Eliminar
+                            </button>
+                        </li>
+                    ))}
+            </ul>
+        ) : (
+            <p>No hay tareas completadas.</p>
+        )}
+    </div>
+);
+
+
+*/
