@@ -174,7 +174,7 @@ export function MemberList ({homes, currentHome, members, setMembers, selectedMe
 }
 
 export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, setSelectedMember}) {
-    const {displayTask, deleteTask, assignMember} = useHome(homes, currentHome);
+    const {displayTask, deleteTask, assignMember, completeTask} = useHome(homes, currentHome);
 
     //Cargar tareas
     useEffect(() => {
@@ -199,6 +199,30 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
         setTasks(updated);
     }
 
+    async function handleCompleteTask(taskId) {
+        await completeTask(taskId);
+
+        const updated = await displayTask();
+        setTasks(updated);
+    }
+
+    function handleNextDueDate(taskId) {
+        if (taskId.next_due_date == 0) return "Sin proxima fecha";
+
+        const dueDate = new Date(taskId.next_due_date);
+        const today = new Date();
+
+        dueDate.setHours(0,0,0,0);
+        today.setHours(0,0,0,0);
+
+        const diffMs = dueDate - today;
+        const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 1) return `Repite en ${diffDays} días`;
+        if (diffDays === 1) return "Repite mañana";
+        if (diffDays === 0) return "Repite hoy";
+    }
+
     return (
         <div>
             <h2>Tareas que hacer:</h2>
@@ -219,6 +243,9 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
                     {!t.member_id && (
                         <button disabled={!selectedMember} onClick={() => handleAssignMember(t.assigned_id)}>Asignar miembro</button>
                     )}
+
+                    <button disabled={selectedMember !== t.member_id || selectedMember == null} onClick={() => handleCompleteTask(t.assigned_id)}>Completar</button>
+
                 </li>
                 ))}
             </ul>
@@ -232,7 +259,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
             <ul>
                 {tasks.filter(t => t.status == "done").map((t) => (
                 <li key={t.assigned_id}>
-                    {t.title} (AssignedTask ID: {t.assigned_id} Status: {t.status})
+                    {t.title} {handleNextDueDate(t)}
 
                     {t.member_id ? (
                         <span> — Asignado a miembro {t.member_name}</span>

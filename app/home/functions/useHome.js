@@ -146,7 +146,21 @@ export default function useHome(homes, initialHomeId){
         }
     }
 
+    async function completeTask(taskId) {
+        try{
+            const res = await fetch('/api/members', {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({taskId})
+            });
+
+            if (!res.ok) throw new Error('UseHome, failed to complete task');
+        } catch (err) {
+            console.error('Use home, error completing task:', err);
+        }
+    }
+
     return {currentHome, currentHomeId, setCurrentHomeId, 
         addMember, displayMember, deleteMember, assignMember,
-        displayDefaultTask, displayTask, addTask, deleteTask};
+        displayDefaultTask, displayTask, addTask, deleteTask, completeTask};
 }

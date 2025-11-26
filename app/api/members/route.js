@@ -22,6 +22,7 @@ export async function POST(req) {
         }
 }
 
+
 //el id del miembro se añade por si solo atraves de postgresql
 
 export async function GET(req) {
@@ -61,4 +62,23 @@ export async function DELETE(req){
         console.error('Error deleting member:', err)
         return NextResponse.json({error: 'Failed to delete member'}, {status: 500})
     }
+}
+
+export async function PATCH(req){
+    const {taskId} = await req.json();
+
+    if (!taskId) {
+        return NextResponse.json({ error: "Task ID required" }, { status: 400 });
+    }
+
+    const existing = await sql`SELECT id FROM assigned_tasks WHERE id = ${taskId};`;
+
+    if (existing.length === 0) {
+        return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    await sql`UPDATE assigned_tasks SET status = 'done' WHERE id = ${taskId};`;
+    
+    return NextResponse.json({success: true});
+
 }
