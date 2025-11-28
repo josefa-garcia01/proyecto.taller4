@@ -28,21 +28,108 @@ export function MemberAdd ({homes, currentHome, setMembers}) {
 
 }
 
-export function TaskAdd ({homes, currentHome, tasks, setTasks, showSurvey, setShowSurvey}) {
-    const {addTask, displayTask} = useHome(homes, currentHome);
+
+
+
+export function SearchWithDropdown({items, selectedTask }) {
+    const [query, setQuery] = useState('');
+    const [selectedId, setSelectedId] = useState('');
+
+    // search is case-insensitive on title only (or whatever you want)
+    const results = items.filter(item =>
+        item.title.toLowerCase().includes(query.toLowerCase())
+    );
+
+    function handleAutoFill() {
+        const task = results.find(t => t.id == parseInt(selectedId));
+        if (task) selectedTask(task);
+    }
+
+    return (
+        <div style={{ width: '300px' }}>
+            {/* SEARCH BAR */}
+            <input
+                type="text"
+                placeholder="Search tasks..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{ width: '100%', padding: '5px' }}
+            />
+
+            {/* DROPDOWN WITH ALL (filtered) TASKS */}
+            <select
+                value={selectedId}
+                onChange={(e) => setSelectedId(e.target.value)}
+                style={{ width: '100%', marginTop: '10px', padding: '5px' }}
+            >
+                <option value="">Select a task...</option>
+
+                {results.map(item => (
+                    <option key={item.id} value={item.id}>
+                        {item.title} — {item.category}
+                    </option>
+                ))}
+            </select>
+
+            <button disabled={selectedId == '' || results.length == 0} onClick={handleAutoFill}>Auto-completar</button>
+
+        </div>
+    );
+}
+
+export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembers, showSurvey, setShowSurvey, defaultTasks, setDefaultTasks}) {
+    const {addTask, displayTask, displayDefaultTask, displayMember} = useHome(homes, currentHome);
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [category, setCategory] = useState('');
     const [frequencyType, setFrequencyType] = useState('days');
-    const [frequencyValue, setFrequencyValue] = useState('');
+    const [frequencyValue, setFrequencyValue] = useState('0');
+    const [difficulty, setDifficulty] = useState('');
+    const [Estimate, setEstimate] = useState('');
+    const [selectedMember, setSelectedMember] = useState('');
+
+    //cargar tareas default
+    useEffect( () => {
+        async function loadDefaults(){
+            if(showSurvey) {
+                const defaultTasks = await displayDefaultTask();
+                setDefaultTasks(defaultTasks);
+            }
+        }
+        loadDefaults();
+    }, [showSurvey]); 
+
+    //cargar miembros
+    useEffect(() => {
+        async function loadMembers() {
+            const data = await displayMember();
+            setMembers(data);
+        }
+        loadMembers();
+    }, [currentHome]);
+
+
 
     async function resetFormFields() {
         setTitle('');
         setDescription('');
         setFrequencyType('days');
-        setFrequencyValue('');
+        setFrequencyValue('0');
         setCategory('');
+        setDifficulty('');
+        setEstimate('');
+        setSelectedMember('');
+    }
+
+    async function fillFormFields(task) {
+        setTitle(task.title || '');
+        setDescription(task.description || '');
+        setCategory(task.category || '');
+        setFrequencyType(task.freqeuncy_type || 'days');
+        setFrequencyValue(task.frequency_value || '');
+        setDifficulty(task.difficulty || '');
+        setEstimate(task.estimated_minutes || '');
     }
 
     async function handleAddTask() {
@@ -67,6 +154,9 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, showSurvey, setSh
             frequency_type: frequencyType,
             frequency_value: parseInt(frequencyValue),
             next_due_date: nextDueDate.toISOString().split('T')[0], // YYYY-MM-DD format
+            member_id: selectedMember || null,
+            difficulty: difficulty,
+            estimated_minutes: Estimate,
         };
 
         await addTask(newTask);
@@ -87,6 +177,8 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, showSurvey, setSh
             <div className="modal-content">
                 <h2>Create New Task</h2>
 
+                <SearchWithDropdown items={defaultTasks} selectedTask={fillFormFields}/>
+
                 <label>Titulo:</label>
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
 
@@ -95,20 +187,68 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, showSurvey, setSh
 
                 <label>Categoria:</label>
                 <input value={category} onChange={e => setCategory(e.target.value)} placeholder="Category" />
+            
+                <label>Miembro a asignar:</label>
+                <select
+                    value={selectedMember}
+                    onChange={(e) => setSelectedMember(e.target.value)}
+                    style={{ width: '100%', marginTop: '0px', padding: '5px' }}
+                    >
+                    <option value="">Selecciona un miembro...</option>
 
+                    {members.map(member => (
+                        <option key={member.id} value={member.id}>
+                            {member.name}
+                        </option>
+                    ))}
+                </select>
+
+                
 
                 <div className="frequency-row">
-                <select value={frequencyType} onChange={e => setFrequencyType(e.target.value)}>
-                    <option value="days">Days</option>
-                    <option value="weeks">Weeks</option>
-                </select>
-                <input
-                    type="number"
-                    min={0}
-                    value={frequencyValue}
-                    onChange={e => setFrequencyValue(e.target.value)}
-                    placeholder="Frequency"
-                />
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                        <label>Tipo de frecuencia</label>
+                        <select value={frequencyType} onChange={e => setFrequencyType(e.target.value)}>
+                            <option value="days">Days</option>
+                            <option value="weeks">Weeks</option>
+                        </select>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                        <label>Valor de frecuencia</label>
+                        <input
+                            type="number"
+                            min={0}
+                            value={frequencyValue}
+                            onChange={e => setFrequencyValue(e.target.value)}
+                            placeholder="Frequency"
+                        />
+                    </div>
+                </div>
+
+                <div className="frequency-row">
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                        <label>Estimado (minutos):</label>
+                        <input
+                            type="number"
+                            min={0}
+                            value={Estimate}
+                            onChange={e => setEstimate(e.target.value)}
+                            placeholder="Estimado"
+                        />
+                    </div>
+                
+                    <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+                        <label>Dificultad:</label>
+                        <input
+                            type="number"
+                            min={0}
+                            max={10}
+                            value={difficulty}
+                            onChange={e => setDifficulty(e.target.value)}
+                            placeholder="difficultad"
+                        />
+                    </div>
                 </div>
 
                 <button onClick={() => setShowSurvey(false)}>Close</button>
@@ -174,7 +314,7 @@ export function MemberList ({homes, currentHome, members, setMembers, selectedMe
 }
 
 export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, setSelectedMember}) {
-    const {displayTask, deleteTask, assignMember, completeTask} = useHome(homes, currentHome);
+    const {displayTask, deleteTask, assignMember, completeTask, repeatMember} = useHome(homes, currentHome);
 
     //Cargar tareas
     useEffect(() => {
@@ -207,7 +347,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
     }
 
     function handleNextDueDate(taskId) {
-        if (taskId.next_due_date == 0) return "Sin proxima fecha";
+        if (taskId.frequency_value == 0) return "Sin proxima fecha";
 
         const dueDate = new Date(taskId.next_due_date);
         const today = new Date();
@@ -221,6 +361,13 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
         if (diffDays > 1) return `Repite en ${diffDays} días`;
         if (diffDays === 1) return "Repite mañana";
         if (diffDays === 0) return "Repite hoy";
+    }
+
+    async function handleRepeatMember(memberId, taskId){
+        await repeatMember(memberId, taskId)
+
+        const updated = await displayTask();
+        setTasks(updated);
     }
 
     return (

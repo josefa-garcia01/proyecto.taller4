@@ -26,6 +26,7 @@ export async function GET() {
                 a.category,
                 a.description,
                 a.frequency_type,
+                a.frequency_value,
                 a.next_due_date
             FROM assigned_tasks a
             LEFT JOIN members m ON a.member_id = m.id
@@ -57,7 +58,9 @@ export async function POST(req) {
             frequency_type,
             frequency_value,
             next_due_date,
-            member_id
+            member_id,
+            estimated_minutes,
+            difficulty
         } = body;
 
         // Validate REQUIRED fields
@@ -71,10 +74,10 @@ export async function POST(req) {
         const result = await sql`
             INSERT INTO assigned_tasks 
                 (home_id, title, description, category, 
-                 frequency_type, frequency_value, next_due_date, member_id)
+                 frequency_type, frequency_value, next_due_date, member_id, estimated_minutes, difficulty)
             VALUES 
                 (${homeId}, ${title}, ${description}, ${category},
-                 ${frequency_type}, ${frequency_value}, ${next_due_date}, ${member_id})
+                 ${frequency_type}, ${frequency_value}, ${next_due_date}, ${member_id}, ${estimated_minutes}, ${difficulty})    
             RETURNING *;
         `;
 

@@ -5,8 +5,10 @@ const sql = neon(process.env.DATABASE_URL);
 
 export async function GET() {
   try {
-    const tasks = await sql`SELECT id, title FROM default_tasks ORDER BY id ASC`;
-    return NextResponse.json({ tasks });
+    const result = await sql`SELECT id, title, description, category, frequency_type, frequency_value, difficulty, estimated_minutes 
+    FROM default_tasks ORDER BY id ASC`;
+
+    return NextResponse.json({tasks: result});
 
   } catch (err) {
     console.error("Error fetching tasks:", err);
