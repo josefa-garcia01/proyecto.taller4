@@ -31,7 +31,7 @@ export function MemberAdd ({homes, currentHome, setMembers}) {
 
 
 
-export function SearchWithDropdown({items, selectedTask }) {
+export function SearchWithDropdown({items, selectedTask, resetFields }) {
     const [query, setQuery] = useState('');
     const [selectedId, setSelectedId] = useState('');
 
@@ -71,7 +71,10 @@ export function SearchWithDropdown({items, selectedTask }) {
                 ))}
             </select>
 
-            <button disabled={selectedId == '' || results.length == 0} onClick={handleAutoFill}>Auto-completar</button>
+            <div style={{ display: "flex", flexDirection: "row", flex: 1 }}>
+                <button disabled={selectedId == '' || results.length == 0} onClick={handleAutoFill}>Auto-completar</button>
+                <button onClick={resetFields}>Vaciar espacios</button>
+            </div>
 
         </div>
     );
@@ -177,7 +180,7 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
             <div className="modal-content">
                 <h2>Create New Task</h2>
 
-                <SearchWithDropdown items={defaultTasks} selectedTask={fillFormFields}/>
+                <SearchWithDropdown items={defaultTasks} selectedTask={fillFormFields} resetFields={resetFormFields}/>
 
                 <label>Titulo:</label>
                 <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" />
@@ -265,6 +268,7 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
 
 export function MemberList ({homes, currentHome, members, setMembers, selectedMember, setSelectedMember}) {
     const {displayMember, deleteMember} = useHome(homes, currentHome);
+    const [menuOpenId, setMenuOpenId] = useState(null);
 
     //Cargar miembros
     useEffect(() => {
@@ -297,24 +301,31 @@ export function MemberList ({homes, currentHome, members, setMembers, selectedMe
             {members.length > 0 ? (
             <ul>
                 {members.map((m) => (
-                <li key={m.id}>
+                <li key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     {m.name} (Member ID: {m.id})
-                    {selectedMember === m.id && "(Seleccionado)"}
+                    {selectedMember === m.id && " (Seleccionado)"}
 
-                    <button onClick={() => handleDeleteMember(m.id)}>Eliminar</button>
-                    <button onClick={() => handleSelectMember(m.id)}>Seleccionar</button>
+                    {/* WRAPPER fixes the issue */}
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setMenuOpenId(menuOpenId === m.id ? null : m.id)}>⋮</button>
+                        {menuOpenId === m.id && (
+                            <div className="interaction-menu">
+                                <button onClick={() => {handleSelectMember(m.id), setMenuOpenId(null)}}> {selectedMember == m.id ? "De-seleccionar" : "Seleccionar"}</button>
+                                <button onClick={() => {handleDeleteMember(m.id), setMenuOpenId(null)}}>Eliminar</button>
+                            </div>
+                        )}
+                    </div>
                 </li>
                 ))}
             </ul>
-            ) : (
-            <p>No se encontraron miembros.</p>
-            )}
+            ) : (<p>No se encontraron miembros.</p>)}
         </div>
     )
 }
 
 export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, setSelectedMember}) {
     const {displayTask, deleteTask, assignMember, completeTask, repeatMember} = useHome(homes, currentHome);
+        const [menuOpenId, setMenuOpenId] = useState(null);
 
     //Cargar tareas
     useEffect(() => {
@@ -376,29 +387,27 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
             {tasks.filter(t => t.status == "pending").length > 0 ? (
             <ul>
                 {tasks.filter(t => t.status == "pending").map((t) => (
-                <li key={t.assigned_id}>
+                <li key={t.assigned_id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                     {t.title} (AssignedTask ID: {t.assigned_id} Status: {t.status})
 
-                    {t.member_id ? (
-                        <span> — Asignado a miembro {t.member_name}</span>
-                    ) : (
-                        <span> — Sin asignar</span>
-                    )}
+                    {t.member_id ? (<span> — Asignado a miembro {t.member_name}</span>) : (<span> — Sin asignar</span>)}
 
-                    <button onClick={() => handleDeleteTask(t.assigned_id)}>Eliminar</button>
 
-                    {!t.member_id && (
-                        <button disabled={!selectedMember} onClick={() => handleAssignMember(t.assigned_id)}>Asignar miembro</button>
-                    )}
-
-                    <button disabled={selectedMember !== t.member_id || selectedMember == null} onClick={() => handleCompleteTask(t.assigned_id)}>Completar</button>
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setMenuOpenId(menuOpenId === t.assigned_id ? null : t.assigned_id)}>⋮</button>
+                        {menuOpenId === t.assigned_id && (
+                            <div className="interaction-menu">
+                                <button onClick={() => {handleDeleteTask(t.assigned_id), setMenuOpenId(null)}}>Eliminar</button>
+                                <button disabled={selectedMember !== t.member_id || selectedMember == null} onClick={() => {handleCompleteTask(t.assigned_id), setMenuOpenId(null)}}>Completar</button>
+                                {!t.member_id && (<button disabled={!selectedMember} onClick={() => {handleAssignMember(t.assigned_id), setMenuOpenId(null)}}>Asignar miembro</button>)}
+                            </div>
+                        )}
+                    </div>
 
                 </li>
                 ))}
             </ul>
-            ) : (
-            <p>No hay tareas por hacer.</p>
-            )}
+            ) : (<p>No hay tareas por hacer.</p>)}
 
 
             <h2>Tareas completadas:</h2>
@@ -408,11 +417,18 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
                 <li key={t.assigned_id}>
                     {t.title} {handleNextDueDate(t)}
 
-                    {t.member_id ? (
-                        <span> — Asignado a miembro {t.member_name}</span>
-                    ) : (
-                        <span> — Sin asignar</span>
-                    )}
+                    {t.member_id ? (<span> — Asignado a miembro {t.member_name}</span>) : (<span> — Sin asignar</span>)}
+
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setMenuOpenId(menuOpenId === t.assigned_id ? null : t.assigned_id)}>⋮</button>
+                        {menuOpenId === t.assigned_id && (
+                            <div className="interaction-menu">
+                                {!t.member_id && (<button disabled={!selectedMember} onClick={() => {handleAssignMember(t.assigned_id), setMenuOpenId(null)}}>Asignar miembro</button>)}
+                            </div>
+                        )}
+                    </div>
+
+
                 </li>
                 ))}
             </ul>
