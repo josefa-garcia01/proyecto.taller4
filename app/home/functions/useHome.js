@@ -2,9 +2,8 @@
 
 import {useState} from 'react';
 
-export default function useHome(homes, initialHomeId){
-    const [currentHomeId, setCurrentHomeId] = useState(initialHomeId);
-    const currentHome = homes.find(h => h.id == parseInt(currentHomeId));
+export default function useHome(homes, selectedHomeId){
+    const currentHome = homes.find(h => h.id == Number(selectedHomeId));
 
 
 
@@ -146,6 +145,20 @@ export default function useHome(homes, initialHomeId){
         }
     }
 
+    async function updateTask(taskId, body) {
+        try {
+            const res = await fetch('/api/tasks/edit', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ taskId, body })
+            });
+
+            if (!res.ok) throw new Error("Failed to update task");
+        } catch (err) {
+            console.error("Error updating task:", err);
+        }
+    }
+
     async function completeTask(taskId) {
         try{
             const res = await fetch('/api/members', {
@@ -159,8 +172,10 @@ export default function useHome(homes, initialHomeId){
             console.error('Use home, error completing task:', err);
         }
     }
+    
+    
 
-    return {currentHome, currentHomeId, setCurrentHomeId, 
+    return {currentHome,
         addMember, displayMember, deleteMember, assignMember,
-        displayDefaultTask, displayTask, addTask, deleteTask, completeTask};
+        displayDefaultTask, displayTask, addTask, deleteTask, updateTask, completeTask};
 }

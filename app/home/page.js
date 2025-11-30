@@ -1,20 +1,19 @@
 import ClientHome from './ClientHome';
 import {cookies} from 'next/headers';
-import pkg from 'pg';
-const {Pool} = pkg;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
+import { neon } from '@neondatabase/serverless';
+import { NextResponse } from "next/server";
+
+const sql = neon(process.env.DATABASE_URL);
+
+export const dynamic = "force-dynamic";
 
 export default async function UserHome(){
   const cookieStore = await cookies();
   const userId = cookieStore.get('userId')?.value; //sin .value, retorna un json con todos los componentes definidos en la API, .value retorna el valor que le damos dentro de la API
 
-  const homesResult = await pool.query(
-    'SELECT * FROM homes WHERE user_id = $1 ORDER BY id ASC', [userId]
-  );
-  const homes = homesResult.rows;
+  const homesResult = await sql`SELECT * FROM homes WHERE user_id = ${userId} ORDER BY id ASC;`;
+  const homes = homesResult
   const homeId = cookieStore.get('homeId')?.value || homes[0].id;
 
   return <ClientHome homes={homes} initialHomeId={homeId}/>;

@@ -80,8 +80,8 @@ export function SearchWithDropdown({items, selectedTask, resetFields }) {
     );
 }
 
-export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembers, showSurvey, setShowSurvey, defaultTasks, setDefaultTasks}) {
-    const {addTask, displayTask, displayDefaultTask, displayMember} = useHome(homes, currentHome);
+export function TaskAdd ({homes, currentHome, setTasks, members, setMembers, showSurvey, setShowSurvey, defaultTasks, setDefaultTasks, editingTask, setEditingTask}) {
+    const {addTask, updateTask, displayTask, displayDefaultTask, displayMember} = useHome(homes, currentHome);
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -113,6 +113,13 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
     }, [currentHome]);
 
 
+    useEffect(() => {
+        if (editingTask && members.length > 0) {
+            fillFormFields(editingTask);
+        } else {
+            resetFormFields();
+        }
+    }, [editingTask], [members])
 
     async function resetFormFields() {
         setTitle('');
@@ -120,8 +127,8 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
         setFrequencyType('days');
         setFrequencyValue('0');
         setCategory('');
-        setDifficulty('');
-        setEstimate('');
+        setDifficulty('0');
+        setEstimate('0');
         setSelectedMember('');
     }
 
@@ -129,10 +136,11 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
         setTitle(task.title || '');
         setDescription(task.description || '');
         setCategory(task.category || '');
-        setFrequencyType(task.freqeuncy_type || 'days');
-        setFrequencyValue(task.frequency_value || '');
-        setDifficulty(task.difficulty || '');
-        setEstimate(task.estimated_minutes || '');
+        setFrequencyType(task.frequency_type || 'days');
+        setDifficulty(task.difficulty != null ? String(task.difficulty) : '');
+        setEstimate(task.estimated_minutes != null ? String(task.estimated_minutes) : '');
+        setFrequencyValue(task.frequency_value != null ? String(task.frequency_value) : '');
+        setSelectedMember(task.member_id ?? null);
     }
 
     async function handleAddTask() {
@@ -140,13 +148,37 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
         if(!frequencyValue) return alert('La frecuencia es obligatoria!');
         
 
-        const now = new Date();
-        let nextDueDate = new Date(now);
+        let nextDueDate;
 
-        if (frequencyType === 'days') {
-            nextDueDate.setDate(now.getDate() + parseInt(frequencyValue));
-        } else if (frequencyType === 'weeks') {
-            nextDueDate.setDate(now.getDate() + parseInt(frequencyValue) * 7);
+
+        if (editingTask) {
+
+            const freqChanged =
+                parseInt(frequencyValue) !== editingTask.frequency_value || frequencyType !== editingTask.frequency_type;
+
+            if (freqChanged) {
+                const now = new Date();
+
+                if (frequencyType === "days") {
+                    now.setDate(now.getDate() + parseInt(frequencyValue));
+                } else {
+                    now.setDate(now.getDate() + parseInt(frequencyValue) * 7);
+                }
+
+                nextDueDate = now.toISOString().split("T")[0];
+            } else {
+                nextDueDate = editingTask.next_due_date;
+            }
+        }
+
+        else {
+            const now = new Date();
+            if (frequencyType === "days") {
+                now.setDate(now.getDate() + parseInt(frequencyValue));
+            } else {
+                now.setDate(now.getDate() + parseInt(frequencyValue) * 7);
+            }
+            nextDueDate = now.toISOString().split("T")[0];
         }
 
         const newTask = {
@@ -156,15 +188,19 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
             category,
             frequency_type: frequencyType,
             frequency_value: parseInt(frequencyValue),
-            next_due_date: nextDueDate.toISOString().split('T')[0], // YYYY-MM-DD format
+            next_due_date: nextDueDate, // YYYY-MM-DD format
             member_id: selectedMember || null,
-            difficulty: difficulty,
-            estimated_minutes: Estimate,
+            difficulty: difficulty === "" ? null: difficulty,
+            estimated_minutes: Estimate === "" ? null : Estimate
         };
 
-        await addTask(newTask);
-        setTasks(await displayTask());
+        if (editingTask) {
+            await updateTask(editingTask.assigned_id, newTask);
+        } else {
+            await addTask(newTask);
+        }
 
+        setTasks(await displayTask());
         setShowSurvey(false);
         resetFormFields();
     
@@ -172,7 +208,7 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
 
     return (
         <div>
-        <button onClick={() => setShowSurvey(true)}>Crear nueva Tarea</button>
+        <button onClick={() => {setShowSurvey(true), setEditingTask(null)}}>Crear nueva Tarea</button>
         
 
         {showSurvey && (
@@ -255,7 +291,7 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
                 </div>
 
                 <button onClick={() => setShowSurvey(false)}>Close</button>
-                <button onClick={handleAddTask}>Guardar</button>
+                <button onClick={handleAddTask}> {editingTask ? "Guardar cambios" : "Guardar Nueva Tarea"}</button>
             </div>
             </div>
         )}
@@ -323,7 +359,7 @@ export function MemberList ({homes, currentHome, members, setMembers, selectedMe
     )
 }
 
-export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, setSelectedMember}) {
+export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, setEditingTask, setShowSurvey}) {
     const {displayTask, deleteTask, assignMember, completeTask, repeatMember} = useHome(homes, currentHome);
         const [menuOpenId, setMenuOpenId] = useState(null);
 
@@ -397,6 +433,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
                         <button onClick={() => setMenuOpenId(menuOpenId === t.assigned_id ? null : t.assigned_id)}>⋮</button>
                         {menuOpenId === t.assigned_id && (
                             <div className="interaction-menu">
+                                <button onClick={() => {setShowSurvey(true); setEditingTask(t);}}>Editar</button>
                                 <button onClick={() => {handleDeleteTask(t.assigned_id), setMenuOpenId(null)}}>Eliminar</button>
                                 <button disabled={selectedMember !== t.member_id || selectedMember == null} onClick={() => {handleCompleteTask(t.assigned_id), setMenuOpenId(null)}}>Completar</button>
                                 {!t.member_id && (<button disabled={!selectedMember} onClick={() => {handleAssignMember(t.assigned_id), setMenuOpenId(null)}}>Asignar miembro</button>)}
