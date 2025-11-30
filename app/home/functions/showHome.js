@@ -1,6 +1,7 @@
 'use client';
 import {useState, useEffect} from 'react';
 import useHome from './useHome';
+import { deleteHome, updateHomeCookie, createHome, editHome } from './switchHomes';
 
 export function MemberAdd ({homes, currentHome, setMembers}) {
     const {displayMember, addMember} = useHome(homes, currentHome);
@@ -28,6 +29,90 @@ export function MemberAdd ({homes, currentHome, setMembers}) {
 
 }
 
+export function HomeFunction({currentHome, userId, localHomes, setLocalHomes, selectedHomeId, setSelectedHomeId, setMembers, setTasks}){
+    const [menuOpenId, setMenuOpenId] = useState(null);
+
+    async function handleEditHome(id) {
+        const newName = prompt("Nuevo nombre del hogar:");
+        if (!newName) return;
+
+        console.log(localHomes);
+        await editHome(id, newName);
+        setLocalHomes(prev => prev.map(h => (h.id === id ? { ...h, name: newName } : h)));
+        console.log(localHomes);
+    }
+
+    async function handleSwitchHome(id){
+        setSelectedHomeId(id);
+        await updateHomeCookie(id);
+        setMembers([]);
+        setTasks([]);
+    }
+
+    async function handleCreateHome(){
+        const name = prompt("Nombre del nuevo hogar:");
+        if(!name) return;
+
+        const newHome = await createHome(name, userId);
+        setLocalHomes(prev => [...prev, newHome]);
+        await handleSwitchHome(newHome.id)
+    }
+
+    async function handleDeleteHome(id){
+        if (!confirm("¿Seguro que quiere eliminar este hogar?")) return;
+
+        try {
+            await deleteHome(id);
+
+            setLocalHomes(prev => prev.filter(h => h.id !== id));
+
+            if (id === currentHome?.id){
+                if(localHomes.length === 1) {
+                    setSelectedHomeId(null);
+                    setMembers([]);
+                    setTasks([]);
+                } else {
+                    const nextHome = localHomes.find(h => h.id !== id);
+                    if (nextHome) await handleSwitchHome(nextHome.id);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to delete home:", err)
+        }
+        
+    }
+
+
+    return (
+        <div>
+            <select
+                value={currentHome?.id}
+                onChange={(e) => handleSwitchHome(Number(e.target.value))}>
+                {localHomes.map(h => (<option key={h.id} value={h.id}>{h.name}</option>))}
+            </select>
+            <button onClick={handleCreateHome}>Crear Hogar</button>
+
+            {localHomes.length > 0 && currentHome ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <h1>Current Home: {currentHome?.name}</h1>
+
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                        <button disabled={!currentHome}onClick={() => setMenuOpenId(menuOpenId === currentHome?.id ? null : currentHome?.id)}>⋮</button>
+                        {menuOpenId === currentHome?.id && (
+                            <div className="interaction-menu">
+                                <button onClick={() => handleEditHome(currentHome.id)}>Editar Nombre</button>
+                                <button onClick={() => handleDeleteHome(currentHome.id)}>Eliminar</button>
+                        </div>
+                        )}
+                    </div>
+                </div>
+            ) : (<p>No hay hogares. Cree uno para empezar</p>)} 
+
+
+        </div>
+    )
+
+}
 
 
 
@@ -113,13 +198,6 @@ export function TaskAdd ({homes, currentHome, setTasks, members, setMembers, sho
     }, [currentHome]);
 
 
-    useEffect(() => {
-        if (editingTask && members.length > 0) {
-            fillFormFields(editingTask);
-        } else {
-            resetFormFields();
-        }
-    }, [editingTask], [members])
 
     async function resetFormFields() {
         setTitle('');
@@ -140,12 +218,22 @@ export function TaskAdd ({homes, currentHome, setTasks, members, setMembers, sho
         setDifficulty(task.difficulty != null ? String(task.difficulty) : '');
         setEstimate(task.estimated_minutes != null ? String(task.estimated_minutes) : '');
         setFrequencyValue(task.frequency_value != null ? String(task.frequency_value) : '');
-        setSelectedMember(task.member_id ?? null);
+        setSelectedMember(task.member_id ?? '');
     }
+
+
+    useEffect(() => {
+        if (editingTask) {
+            fillFormFields(editingTask);
+        } else if (!editingTask) {
+            resetFormFields();
+        }
+    }, [editingTask, members]);
 
     async function handleAddTask() {
         if(!title) return alert('El titulo es obligatorio!');
         if(!frequencyValue) return alert('La frecuencia es obligatoria!');
+        if(difficulty < 1) return alert('Dificultad debe estar entre 1 y 10!')
         
 
         let nextDueDate;
@@ -278,10 +366,10 @@ export function TaskAdd ({homes, currentHome, setTasks, members, setMembers, sho
                     </div>
                 
                     <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                        <label>Dificultad:</label>
+                        <label>Dificultad (1-10):</label>
                         <input
                             type="number"
-                            min={0}
+                            min={1}
                             max={10}
                             value={difficulty}
                             onChange={e => setDifficulty(e.target.value)}
@@ -361,7 +449,7 @@ export function MemberList ({homes, currentHome, members, setMembers, selectedMe
 
 export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, setEditingTask, setShowSurvey}) {
     const {displayTask, deleteTask, assignMember, completeTask, repeatMember} = useHome(homes, currentHome);
-        const [menuOpenId, setMenuOpenId] = useState(null);
+    const [menuOpenId, setMenuOpenId] = useState(null);
 
     //Cargar tareas
     useEffect(() => {
@@ -433,7 +521,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
                         <button onClick={() => setMenuOpenId(menuOpenId === t.assigned_id ? null : t.assigned_id)}>⋮</button>
                         {menuOpenId === t.assigned_id && (
                             <div className="interaction-menu">
-                                <button onClick={() => {setShowSurvey(true); setEditingTask(t);}}>Editar</button>
+                                <button onClick={() => {setEditingTask(t); setShowSurvey(true);}}>Editar</button>
                                 <button onClick={() => {handleDeleteTask(t.assigned_id), setMenuOpenId(null)}}>Eliminar</button>
                                 <button disabled={selectedMember !== t.member_id || selectedMember == null} onClick={() => {handleCompleteTask(t.assigned_id), setMenuOpenId(null)}}>Completar</button>
                                 {!t.member_id && (<button disabled={!selectedMember} onClick={() => {handleAssignMember(t.assigned_id), setMenuOpenId(null)}}>Asignar miembro</button>)}

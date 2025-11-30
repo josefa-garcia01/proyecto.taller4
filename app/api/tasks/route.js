@@ -26,7 +26,9 @@ export async function GET() {
                 a.description,
                 a.frequency_type,
                 a.frequency_value,
-                a.next_due_date
+                a.next_due_date,
+                a.difficulty,
+                a.estimated_minutes
             FROM assigned_tasks a
             LEFT JOIN members m ON a.member_id = m.id
             WHERE a.home_id = ${homeId}

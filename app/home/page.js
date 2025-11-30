@@ -16,7 +16,7 @@ export default async function UserHome(){
   const homes = homesResult
   const homeId = cookieStore.get('homeId')?.value || homes[0].id;
 
-  return <ClientHome homes={homes} initialHomeId={homeId}/>;
+  return <ClientHome homes={homes} initialHomeId={homeId} userId={userId}/>;
 
 }
 

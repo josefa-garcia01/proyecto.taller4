@@ -34,3 +34,13 @@ export async function createHome(name, userId) {
 
     return home; // return the created home to the client
 }
+
+export async function editHome(homeId, newName) {
+  const updated = await sql`UPDATE homes SET name = ${newName} WHERE id = ${homeId} RETURNING id, name;`;
+  return updated[0]; // Return updated home
+}
+
+export async function deleteHome(homeId) {
+  await sql`DELETE FROM homes WHERE id = ${homeId}`;
+  return true;
+}
