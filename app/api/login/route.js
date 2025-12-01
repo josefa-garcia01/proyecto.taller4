@@ -27,7 +27,7 @@ export async function POST(req) {
       userId = inserted[0].id; // .id es la propiedad id de la base de datos
 
       // Crear primer hogar
-      await sql`INSERT INTO homes (name, user_id) VALUES ('My First Home', ${userId})`;
+      await sql`INSERT INTO homes (name, user_id) VALUES ('Mi Primer Hogar', ${userId})`;
 
     } else {
       userId = users[0].id; //Si ya existe

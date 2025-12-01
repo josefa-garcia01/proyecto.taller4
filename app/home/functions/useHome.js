@@ -23,13 +23,9 @@ export default function useHome(homes, selectedHomeId){
     }
 
 
-    async function displayMember(){
+    async function displayMember(homeId){
         try{
-            const res = await fetch('./api/members', {
-                method: 'GET',
-                credentials: 'include',
-                cache: 'no-store',
-            });
+            const res = await fetch(`/api/members?homeId=${homeId}`, {method: 'GET', credentials: "include"});
 
             if (!res.ok) throw new Error('Failed to show members');
             const showMember = await res.json();
@@ -74,6 +70,23 @@ export default function useHome(homes, selectedHomeId){
         }
     }
 
+    async function editMember(memberId, newName){
+        try {
+            const res = await fetch('./api/members/edit', {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+                body: JSON.stringify({memberId, newName})
+            });
+
+            if (!res.ok) throw new Error('usehome, failed to edit member name');
+            return true;
+        } catch (err) {
+            console.error('Error editing member:', err);
+            return false;
+        }
+    }
+
 
 
 
@@ -92,9 +105,9 @@ export default function useHome(homes, selectedHomeId){
         return [];
     }
 
-    async function displayTask() {
+    async function displayTask(homeId) {
         try {
-            const res = await fetch('/api/tasks', {method: 'GET'});
+            const res = await fetch(`/api/tasks?homeId=${homeId}`, {method: 'GET', credentials: "include"});
 
             if (!res.ok) throw new Error('Failed to load assigned tasks');
 
@@ -176,6 +189,6 @@ export default function useHome(homes, selectedHomeId){
     
 
     return {currentHome,
-        addMember, displayMember, deleteMember, assignMember,
+        addMember, displayMember, deleteMember, assignMember, editMember,
         displayDefaultTask, displayTask, addTask, deleteTask, updateTask, completeTask};
 }

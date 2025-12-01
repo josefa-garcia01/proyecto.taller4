@@ -7,12 +7,15 @@ const sql = neon(process.env.DATABASE_URL);
 
 export async function updateHomeCookie(homeId) {
   const cookieStore = await cookies();
+
   
   cookieStore.set("homeId", String(homeId), {
     path: "/",
     sameSite: "lax",
     httpOnly: true
   });
+
+  console.log("COOKIE SET TO:", homeId);
 
   return true;
 }

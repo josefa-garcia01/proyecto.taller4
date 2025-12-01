@@ -27,8 +27,8 @@ export async function POST(req) {
 
 export async function GET(req) {
     try{
-        const cookieStore = await cookies();
-        const homeId = cookieStore.get('homeId')?.value;
+        const {searchParams} = new URL(req.url);
+        const homeId = searchParams.get("homeId")
 
         if (!homeId) {
             return NextResponse.json({error: 'Missing homeId Cookie'}, {status: 400}); 

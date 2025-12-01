@@ -5,10 +5,11 @@ import { cookies } from 'next/headers';
 const sql = neon(process.env.DATABASE_URL);
 
 
-export async function GET() {
+export async function GET(req) {
     try {
-        const cookieStore = await cookies();
-        const homeId = cookieStore.get('homeId')?.value;
+        const {searchParams} = new URL(req.url);
+        const homeId = searchParams.get("homeId")
+        console.log("cookie homeid:", homeId);
 
         if (!homeId) {
             return NextResponse.json({ error: "Missing homeId cookie" }, { status: 400 });
