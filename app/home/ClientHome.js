@@ -15,17 +15,7 @@ export default function ClientHome({homes, initialHomeId, userId}) {
     const[defaultTasks, setDefaultTasks] = useState([])
     const[showSurvey, setShowSurvey] = useState(false);
     const[editingTask, setEditingTask] = useState(null)
-
-    useEffect(() => {
-        setSelectedHomeId(initialHomeId);
-    }, [initialHomeId]);
-
     const { currentHome } = useHome(localHomes, selectedHomeId);
-
-    if (selectedHomeId === null) {
-        // Render nothing until hydrated → no mismatch
-        return null;
-    }
 
     const router = useRouter();
     async function logout() {
