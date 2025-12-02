@@ -1,6 +1,5 @@
 import { neon } from "@neondatabase/serverless";
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 const sql = neon(process.env.DATABASE_URL);
 

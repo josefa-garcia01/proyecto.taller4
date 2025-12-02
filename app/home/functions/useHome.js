@@ -1,7 +1,5 @@
 'use client';
 
-import {useState} from 'react';
-
 export default function useHome(homes, selectedHomeId){
     const currentHome = homes.find(h => h.id == Number(selectedHomeId));
 
@@ -9,7 +7,7 @@ export default function useHome(homes, selectedHomeId){
 
     async function addMember(homeId, memberName){
         try{
-            const res = await fetch('./api/members', {
+            const res = await fetch('/api/members', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 credentials: 'include',
@@ -55,7 +53,7 @@ export default function useHome(homes, selectedHomeId){
 
     async function assignMember(memberId, taskId){
         try{
-            const res = await fetch('./api/tasks', {
+            const res = await fetch('/api/tasks', {
                 method: 'PATCH',
                 headers: {'Content-Type': 'application/json'},
                 credentials: 'include',
@@ -72,7 +70,7 @@ export default function useHome(homes, selectedHomeId){
 
     async function editMember(memberId, newName){
         try {
-            const res = await fetch('./api/members/edit', {
+            const res = await fetch('/api/members/edit', {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 credentials: 'include',
