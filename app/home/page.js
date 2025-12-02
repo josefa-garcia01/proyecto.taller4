@@ -14,7 +14,14 @@ export default async function UserHome(){
 
   const homesResult = await sql`SELECT * FROM homes WHERE user_id = ${userId} ORDER BY id ASC;`;
   const homes = homesResult
-  const homeId = cookieStore.get('homeId')?.value || homes[0].id;
+
+  let homeId
+  if (homes.length === 0) {
+    homeId = null;
+  } else {
+    homeId = cookieStore.get('homeId')?.value || homes[0].id;
+  }
+  
   console.log("COOKIE READ ON LOAD:", homeId);
 
   return <ClientHome homes={homes} initialHomeId={homeId} userId={userId}/>;

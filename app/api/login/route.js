@@ -53,13 +53,25 @@ export async function POST(req) {
       // secure: true, // uncomment if using HTTPS
     });
 
-    res.cookies.set({
-      name: 'homeId',
-      value: String(firstHome.id),
-      path: '/',
-      httpOnly: true,
-      sameSite: 'lax',
-    })
+    if (homes.length > 0) {
+      res.cookies.set({
+        name: "homeId",
+        value: String(homes[0].id),
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+      });
+    } else {
+      // Important: clear previous homeId cookie if it existed
+      res.cookies.set({
+        name: "homeId",
+        value: "",
+        path: "/",
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 0,
+      });
+    }
 
     return res;
 
