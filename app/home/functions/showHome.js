@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 export function MemberAdd ({homes, currentHome, members, setMembers}) {
     const {displayMember, addMember} = useHome(homes, currentHome);
     const [memberName, setMemberName] = useState('');
-    const [isAdding, setAdding] = useState(false);
 
     function getUniqueName(baseName, members) {
         const regex = new RegExp(`^${baseName}( \\((\\d+)\\))?$`);
@@ -25,33 +24,27 @@ export function MemberAdd ({homes, currentHome, members, setMembers}) {
 
     async function handleAddMember() {
         let trim = memberName.trim();
-        if (!trim || isAdding) return;
+        if (!trim) return;
 
-        setAdding(true);
+        const finalName = getUniqueName(trim, members);
 
-        try{
-            const finalName = getUniqueName(trim, members);
-            await addMember(currentHome.id, finalName);
-            setMemberName('');
-            const updated = await displayMember(currentHome.id);
-            setMembers(updated);
-
-        } finally {
-            setAdding(false);
-        }
-
+        await addMember(currentHome.id, finalName);
+        setMemberName('');
+        const updated = await displayMember(currentHome.id);
+        setMembers(updated);
     }
 
     return (
         <div>
             <input
+            style={{minWidth: "230px"}}
             type="name"
             placeholder="Ingresar nombre de miembro nuevo"
             value={memberName}
             onChange={(e) => setMemberName(e.target.value)}
             />
 
-            <button disabled={!memberName.trim() || isAdding}  onClick={handleAddMember}>Añadir miembro</button>
+            <button disabled={!memberName.trim()}  onClick={handleAddMember}>Añadir miembro</button>
         </div>
     )
 
@@ -132,20 +125,32 @@ export function HomeFunction({currentHome, userId, localHomes, setLocalHomes, se
 
 
     return (
-        <div>
-            <select
-                value={currentHome?.id}
-                onChange={(e) => handleSwitchHome(Number(e.target.value))}>
-                {localHomes.map(h => (<option key={h.id} value={h.id}>{h.name}</option>))}
-            </select>
-            <button onClick={handleCreateHome}>Crear Hogar</button>
+        <div style={{display: "flex", gap: "30px", marginBottom: "50px", borderBottom: "2px solid black", maxWidth: "720px"}}>
+            <div style={{marginTop: "23px", display: "block"}}>
+                
+                <button style={{display: "block"}} onClick={handleCreateHome}>Crear Hogar</button>
+                
+                <select
+                    value="" 
+                    onChange={(e) => {
+                        const id = Number(e.target.value);
+                        if (id) handleSwitchHome(id);
+                    }}
+                    >
+                    <option value="" disabled>
+                        Cambiar Hogar
+                    </option>
+                    {localHomes.map(h => (<option key={h.id} value={h.id}>{h.name}</option>))}
+                </select>
+
+            </div>
 
             {localHomes.length > 0 && currentHome ? (
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <h1>Hogar Actual: {currentHome?.name} ({currentHome.id})</h1>
+                    <h1>Hogar Actual: {currentHome?.name}</h1>
 
                     <div style={{ position: "relative", display: "inline-block" }}>
-                        <button disabled={!currentHome}onClick={() => setMenuOpenId(menuOpenId === currentHome?.id ? null : currentHome?.id)}>⋮</button>
+                        <button style={{padding: "4px"}} disabled={!currentHome}onClick={() => setMenuOpenId(menuOpenId === currentHome?.id ? null : currentHome?.id)}>⋮</button>
                         {menuOpenId === currentHome?.id && (
                             <div className="interaction-menu">
                                 <button onClick={() => handleEditHome(currentHome.id)}>Editar Nombre</button>
@@ -247,8 +252,6 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
     const [difficulty, setDifficulty] = useState('');
     const [Estimate, setEstimate] = useState('');
     const [selectedMember, setSelectedMember] = useState('');
-    
-    const [isAdding, setAdding] = useState(false);
 
     //cargar tareas default
     useEffect( () => {
@@ -318,78 +321,71 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
     }
 
     async function handleAddTask() {
+        const safeTitle = title?.trim() || "Sin título";
+        const safeDescription = description?.trim() || "";
+        const safeCategory = category?.trim() || "";
 
-        setAdding(true);
-        try{
-            const safeTitle = title?.trim() || "Sin título";
-            const safeDescription = description?.trim() || "";
-            const safeCategory = category?.trim() || "";
+        const safeFrequencyValue = parseInt(frequencyValue) || 0;
+        const safeFrequencyType = frequencyType || "days";
 
-            const safeFrequencyValue = parseInt(frequencyValue) || 0;
-            const safeFrequencyType = frequencyType || "days";
+        const safeDifficulty = difficulty === "" || difficulty == null || difficulty == 0 ? 1 : Number(difficulty);
+        const safeEstimate = Estimate === "" || Estimate == null ? 0 : Number(Estimate);
 
-            const safeDifficulty = difficulty === "" || difficulty == null || difficulty == 0 ? 1 : Number(difficulty);
-            const safeEstimate = Estimate === "" || Estimate == null ? 0 : Number(Estimate);
-
-            let nextDueDate;
+        let nextDueDate;
 
 
-            if (editingTask) {
-                const freqChanged =
-                    safeFrequencyValue !== editingTask.frequency_value ||
-                    safeFrequencyType !== editingTask.frequency_type;
+        if (editingTask) {
+            const freqChanged =
+                safeFrequencyValue !== editingTask.frequency_value ||
+                safeFrequencyType !== editingTask.frequency_type;
 
-                if (freqChanged) {
-                    const now = new Date();
-                    if (safeFrequencyType === "days") {
-                        now.setDate(now.getDate() + safeFrequencyValue);
-                    } else { 
-                        now.setDate(now.getDate() + safeFrequencyValue * 7);
-                    }
-                    nextDueDate = now.toISOString().split("T")[0];
-                } else {
-                    nextDueDate = editingTask.next_due_date;
-                }
-            } else {
+            if (freqChanged) {
                 const now = new Date();
                 if (safeFrequencyType === "days") {
                     now.setDate(now.getDate() + safeFrequencyValue);
-                } else {
+                } else { 
                     now.setDate(now.getDate() + safeFrequencyValue * 7);
                 }
                 nextDueDate = now.toISOString().split("T")[0];
-            }
-
-
-            const trim = safeTitle.trim();
-            const finalTitle = getUniqueName(trim, tasks);
-
-            const newTask = {
-                homeId: currentHome.id,
-                title: finalTitle,
-                description: safeDescription,
-                category: safeCategory,
-                frequency_type: safeFrequencyType,
-                frequency_value: safeFrequencyValue,
-                next_due_date: nextDueDate,
-                member_id: selectedMember || null,
-                difficulty: safeDifficulty,
-                estimated_minutes: safeEstimate
-            };
-
-            if (editingTask) {
-                await updateTask(editingTask.assigned_id, newTask);
             } else {
-                await addTask(newTask);
+                nextDueDate = editingTask.next_due_date;
             }
-
-            setTasks(await displayTask(currentHome.id));
-            setShowSurvey(false);
-            resetFormFields();
-        } finally {
-            setAdding(false);
+        } else {
+            const now = new Date();
+            if (safeFrequencyType === "days") {
+                now.setDate(now.getDate() + safeFrequencyValue);
+            } else {
+                now.setDate(now.getDate() + safeFrequencyValue * 7);
+            }
+            nextDueDate = now.toISOString().split("T")[0];
         }
 
+
+        const trim = safeTitle.trim();
+        const finalTitle = getUniqueName(trim, tasks);
+
+        const newTask = {
+            homeId: currentHome.id,
+            title: finalTitle,
+            description: safeDescription,
+            category: safeCategory,
+            frequency_type: safeFrequencyType,
+            frequency_value: safeFrequencyValue,
+            next_due_date: nextDueDate,
+            member_id: selectedMember || null,
+            difficulty: safeDifficulty,
+            estimated_minutes: safeEstimate
+        };
+
+        if (editingTask) {
+            await updateTask(editingTask.assigned_id, newTask);
+        } else {
+            await addTask(newTask);
+        }
+
+        setTasks(await displayTask(currentHome.id));
+        setShowSurvey(false);
+        resetFormFields();
     
     }
 
@@ -478,7 +474,7 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
                 </div>
 
                 <button onClick={() => setShowSurvey(false)}>Cerrar</button>
-                <button onClick={handleAddTask} disabled={isAdding}> {editingTask ? "Guardar cambios" : "Guardar Nueva Tarea"}</button>
+                <button onClick={handleAddTask}> {editingTask ? "Guardar cambios" : "Guardar Nueva Tarea"}</button>
             </div>
             </div>
         )}
@@ -744,7 +740,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
             <ul>
                 {tasks.filter(t => t.status == "pending").map((t) => (
                 <li key={t.assigned_id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {t.title}
+                    {t.title} (AssignedTask ID: {t.assigned_id} Status: {t.status})
 
                     {t.member_id ? (<span> — (Asignado a miembro: {t.member_name})</span>) : (<span> — (Sin asignar)</span>)}
 
@@ -796,7 +792,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
 
                     {t.member_id ? (<span> — Asignado a miembro: {t.member_name}</span>) : (<span> — Sin asignar</span>)}
 
-                    <div style={{ position: "relative", display: "inline-block" }}>
+                    <div style={{ position: "relative", display: "inline-block", marginLeft: "5px"}}>
                         <button onClick={() => setMenuOpenId(menuOpenId === t.assigned_id ? null : t.assigned_id)}>⋮</button>
                         {menuOpenId === t.assigned_id && (
                             <div className="interaction-menu" style={{ padding: "10px", background: "#f5f5f5", borderRadius: "6px" }}>
