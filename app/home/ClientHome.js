@@ -36,7 +36,8 @@ export default function ClientHome({homes, initialHomeId, userId}) {
                     <MemberAdd homes={localHomes} currentHome={currentHome}  members={members} setMembers={setMembers}/>
                     <MemberList homes={localHomes} currentHome={currentHome} setTasks={setTasks} members={members} setMembers={setMembers} selectedMember={selectedMember} setSelectedMember={setSelectedMember}/>
                     <TaskAdd homes={localHomes} currentHome={currentHome} tasks={tasks} setTasks={setTasks} members={members} setMembers={setMembers} showSurvey={showSurvey} setShowSurvey={setShowSurvey} defaultTasks={defaultTasks} setDefaultTasks={setDefaultTasks} editingTask={editingTask} setEditingTask={setEditingTask}/>
-                    <TaskList homes={localHomes} currentHome={currentHome} tasks={tasks} setTasks={setTasks} selectedMember={selectedMember} setSelectedMember={setSelectedMember} setEditingTask={setEditingTask} setShowSurvey={setShowSurvey}/>                
+                    {/* CORRECCIÓN: Remover setSelectedMember de TaskList ya que no lo necesita */}
+                    <TaskList homes={localHomes} currentHome={currentHome} tasks={tasks} setTasks={setTasks} selectedMember={selectedMember} setEditingTask={setEditingTask} setShowSurvey={setShowSurvey}/>                
                 </>
             )}
 
