@@ -551,7 +551,7 @@ export function MemberList ({homes, currentHome, setTasks, members, setMembers, 
             <ul>
                 {members.map((m) => (
                 <li key={m.id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {m.name} (Member ID: {m.id})
+                    {m.name}
                     {selectedMember === m.id && " (Seleccionado)"}
 
                     {/* WRAPPER fixes the issue */}
@@ -744,7 +744,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
             <ul>
                 {tasks.filter(t => t.status == "pending").map((t) => (
                 <li key={t.assigned_id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {t.title} (AssignedTask ID: {t.assigned_id} Status: {t.status})
+                    {t.title}
 
                     {t.member_id ? (<span> — (Asignado a miembro: {t.member_name})</span>) : (<span> — (Sin asignar)</span>)}
 
