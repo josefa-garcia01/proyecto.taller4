@@ -5,9 +5,6 @@ const sql = neon(process.env.DATABASE_URL);
 
 
 export async function POST(req) {
-  console.log("DB URL?", process.env.DATABASE_URL);
-
-
   try {
     const { email } = await req.json();
 

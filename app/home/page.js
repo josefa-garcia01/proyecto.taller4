@@ -21,8 +21,6 @@ export default async function UserHome(){
   } else {
     homeId = cookieStore.get('homeId')?.value || homes[0].id;
   }
-  
-  console.log("COOKIE READ ON LOAD:", homeId);
 
   return <ClientHome homes={homes} initialHomeId={homeId} userId={userId}/>;
 

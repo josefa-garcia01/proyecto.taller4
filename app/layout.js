@@ -17,8 +17,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="auth-layout">
-        {children}
-        <footer style={footer}>
+        <div className="page-content">
+          {children}
+        </div>
+        <footer>
           <p>© 2025 ViveHogar - Todos los derechos reservados</p>
         </footer>
       </body>

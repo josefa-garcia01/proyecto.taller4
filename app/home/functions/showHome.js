@@ -757,19 +757,19 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
                     {t.member_id ? (<span> — (Asignado a miembro: {t.member_name})</span>) : (<span> — (Sin asignar)</span>)}
 
 
-                    <div style={{ position: "relative", display: "inline-block" }}>
+                    <div style={{ position: "relative", display: "inline-block", marginLeft: "5px"}}>
                         <button onClick={() => setMenuOpenId(menuOpenId === t.assigned_id ? null : t.assigned_id)}>⋮</button>
                         {menuOpenId === t.assigned_id && (
                             <div className="interaction-menu" style={{ padding: "10px", background: "#f5f5f5", borderRadius: "6px" }}>
                                 
-                                <p style={{ margin: "2px 0", whiteSpace: "pre-wrap" }}>
-                                <b>Descripción:</b> {t.description || "No tiene descripción"}
-                                </p>
-                                <p><b>Categoria:</b> {t.category}</p>
-                                <p><b>Frecuencia:</b> {formatFrequency(t.frequency_value, t.frequency_type)}</p>
-                                <p><b>Dificultad (1-10):</b> {t.difficulty ? (<span>{t.difficulty}</span>) : (<span>Indeterminado</span>)}</p>
-                                <p><b>Tiempo Estimado (minutos):</b> {t.estimated_minutes ? (<span>{t.estimated_minutes}</span>) : (<span>Indeterminado</span>)}</p>
-                                <p><b>Miembro Asignado:</b> {t.member_id ? (<span> {t.member_name}</span>) : (<span>Sin asignar</span>)}</p>
+                                <p style={{ margin: "6px 0", whiteSpace: "pre-wrap" }}>
+                                <b>Descripción:</b> {t.description || "No tiene descripción"}</p>
+
+                                <p style={{margin: 0}}><b>Categoria:</b> {t.category}</p>
+                                <p style={{margin: 0}}><b>Frecuencia:</b> {formatFrequency(t.frequency_value, t.frequency_type)}</p>
+                                <p style={{margin: 0}}><b>Dificultad (1-10):</b> {t.difficulty ? (<span>{t.difficulty}</span>) : (<span>Indeterminado</span>)}</p>
+                                <p style={{margin: 0}}><b>Tiempo Estimado (minutos):</b> {t.estimated_minutes ? (<span>{t.estimated_minutes}</span>) : (<span>Indeterminado</span>)}</p>
+                                <p style={{margin: 0}}><b>Miembro Asignado:</b> {t.member_id ? (<span> {t.member_name}</span>) : (<span>Sin asignar</span>)}</p>
                                 <hr />
 
                                 <button onClick={() => {setEditingTask(t); setShowSurvey(true);}}>Editar</button>
@@ -809,14 +809,14 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
                         {menuOpenId === t.assigned_id && (
                             <div className="interaction-menu" style={{ padding: "10px", background: "#f5f5f5", borderRadius: "6px" }}>
                                 
-                                <p style={{ margin: "2px 0", whiteSpace: "pre-wrap" }}>
-                                <b>Descripción:</b> {t.description || "No tiene descripción"}
-                                </p>
-                                <p><b>Categoria:</b> {t.category}</p>
-                                <p><b>Frecuencia:</b> {formatFrequency(t.frequency_value, t.frequency_type)}</p>
-                                <p><b>Dificultad (1-10):</b> {t.difficulty}</p>
-                                <p><b>Tiempo Estimado (minutos):</b> {t.estimated_minutes ? (<span>{t.estimated_minutes}</span>) : (<span>Indeterminado</span>)}</p>
-                                <p><b>Miembro Asignado:</b> {t.member_id ? (<span> {t.member_name}</span>) : (<span>Sin asignar</span>)}</p>
+                                <p style={{ margin: "8px 0", whiteSpace: "pre-wrap" }}>
+                                <b>Descripción:</b> {t.description || "No tiene descripción"}</p>
+
+                                <p style={{margin: 0}}><b>Categoria:</b> {t.category}</p>
+                                <p style={{margin: 0}}><b>Frecuencia:</b> {formatFrequency(t.frequency_value, t.frequency_type)}</p>
+                                <p style={{margin: 0}}><b>Dificultad (1-10):</b> {t.difficulty ? (<span>{t.difficulty}</span>) : (<span>Indeterminado</span>)}</p>
+                                <p style={{margin: 0}}><b>Tiempo Estimado (minutos):</b> {t.estimated_minutes ? (<span>{t.estimated_minutes}</span>) : (<span>Indeterminado</span>)}</p>
+                                <p style={{margin: 0}}><b>Miembro Asignado:</b> {t.member_id ? (<span> {t.member_name}</span>) : (<span>Sin asignar</span>)}</p>
 
                                 <hr />
 

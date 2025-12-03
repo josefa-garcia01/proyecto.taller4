@@ -8,7 +8,6 @@ export async function GET(req) {
     try {
         const {searchParams} = new URL(req.url);
         const homeId = searchParams.get("homeId")
-        console.log("cookie homeid:", homeId);
 
         if (!homeId) {
             return NextResponse.json({ error: "Missing homeId cookie" }, { status: 400 });
