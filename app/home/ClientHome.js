@@ -1,13 +1,22 @@
 'use client';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
+import useHome from './functions/useHome';
+import {MemberList, MemberAdd, TaskAdd, TaskList, HomeFunction} from './functions/showHome';
 import { useRouter } from 'next/navigation';
 
 export default function ClientHome({homes, initialHomeId, userId}) {
+
     const[selectedHomeId, setSelectedHomeId] = useState(initialHomeId);
-    const [localHomes, setLocalHomes] = useState(homes);
-    
+    const [localHomes, setLocalHomes] = useState(homes); //adaptar array homes que da el servidor al momento de iniciar sesion 
+    const [selectedMember, setSelectedMember] = useState(null);
+    const[members, setMembers] = useState([]);
+    const[tasks, setTasks] = useState([]);
+    const[defaultTasks, setDefaultTasks] = useState([])
+    const[showSurvey, setShowSurvey] = useState(false);
+    const[editingTask, setEditingTask] = useState(null)
+    const { currentHome } = useHome(localHomes, selectedHomeId);
     const router = useRouter();
-    
+
     async function logout() {
         router.push("/");
     }
@@ -15,20 +24,19 @@ export default function ClientHome({homes, initialHomeId, userId}) {
     return(
         <div>
             <button onClick={logout}>Logout</button>
-            <h1>ClientHome Loaded - Debug Mode</h1>
-            <p>Homes count: {localHomes.length}</p>
-            <p>Selected Home ID: {selectedHomeId}</p>
-            <p>User ID: {userId}</p>
-            
-            {localHomes.length > 0 && (
+            {localHomes.length === 0 ? (
                 <div>
-                    <h2>Available Homes:</h2>
-                    <ul>
-                        {localHomes.map(home => (
-                            <li key={home.id}>{home.name} (ID: {home.id})</li>
-                        ))}
-                    </ul>
+                    <HomeFunction currentHome={currentHome} userId={userId} localHomes={localHomes} setLocalHomes={setLocalHomes} selectedHomeId={selectedHomeId} setSelectedHomeId={setSelectedHomeId} setMembers={setMembers} setTasks={setTasks}/>
                 </div>
+            ) : (
+                <>
+                    <HomeFunction currentHome={currentHome} userId={userId} localHomes={localHomes} setLocalHomes={setLocalHomes} selectedHomeId={selectedHomeId} setSelectedHomeId={setSelectedHomeId} setMembers={setMembers} setTasks={setTasks}/>
+                    <MemberAdd homes={localHomes} currentHome={currentHome}  members={members} setMembers={setMembers}/>
+                    <MemberList homes={localHomes} currentHome={currentHome} setTasks={setTasks} members={members} setMembers={setMembers} selectedMember={selectedMember} setSelectedMember={setSelectedMember}/>
+                    <TaskAdd homes={localHomes} currentHome={currentHome} tasks={tasks} setTasks={setTasks} members={members} setMembers={setMembers} showSurvey={showSurvey} setShowSurvey={setShowSurvey} defaultTasks={defaultTasks} setDefaultTasks={setDefaultTasks} editingTask={editingTask} setEditingTask={setEditingTask}/>
+                    {/* CORRECCIÓN: Remover setSelectedMember de TaskList ya que no lo necesita */}
+                    <TaskList homes={localHomes} currentHome={currentHome} tasks={tasks} setTasks={setTasks} selectedMember={selectedMember} setEditingTask={setEditingTask} setShowSurvey={setShowSurvey}/>                
+                </>
             )}
         </div>
     )
