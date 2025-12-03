@@ -1,4 +1,4 @@
-import ClientHome from './ClientHome';
+// import ClientHome from './ClientHome';
 import {cookies} from 'next/headers';
 
 import { neon } from '@neondatabase/serverless';
