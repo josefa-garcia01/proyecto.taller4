@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export function MemberAdd ({homes, currentHome, members, setMembers}) {
     const {displayMember, addMember} = useHome(homes, currentHome);
     const [memberName, setMemberName] = useState('');
+    const [isAdding, setAdding] = useState(false);
 
     function getUniqueName(baseName, members) {
         const regex = new RegExp(`^${baseName}( \\((\\d+)\\))?$`);
@@ -24,14 +25,19 @@ export function MemberAdd ({homes, currentHome, members, setMembers}) {
 
     async function handleAddMember() {
         let trim = memberName.trim();
-        if (!trim) return;
+        if (!trim || isAdding) return;
 
-        const finalName = getUniqueName(trim, members);
+        setAdding(true);
 
-        await addMember(currentHome.id, finalName);
-        setMemberName('');
-        const updated = await displayMember(currentHome.id);
-        setMembers(updated);
+        try{
+            const finalName = getUniqueName(trim, members);
+            await addMember(currentHome.id, finalName);
+            setMemberName('');
+            const updated = await displayMember(currentHome.id);
+            setMembers(updated);
+        } finally {
+            setAdding(false);
+        }
     }
 
     return (
@@ -44,7 +50,7 @@ export function MemberAdd ({homes, currentHome, members, setMembers}) {
             onChange={(e) => setMemberName(e.target.value)}
             />
 
-            <button disabled={!memberName.trim()}  onClick={handleAddMember}>Añadir miembro</button>
+            <button disabled={!memberName.trim() || isAdding}  onClick={handleAddMember}>Añadir miembro</button>
         </div>
     )
 
@@ -252,7 +258,8 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
     const [difficulty, setDifficulty] = useState('');
     const [Estimate, setEstimate] = useState('');
     const [selectedMember, setSelectedMember] = useState('');
-
+    const [isAdding, setAdding] = useState(false);
+    
     //cargar tareas default
     useEffect( () => {
         async function loadDefaults(){
@@ -321,71 +328,76 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
     }
 
     async function handleAddTask() {
-        const safeTitle = title?.trim() || "Sin título";
-        const safeDescription = description?.trim() || "";
-        const safeCategory = category?.trim() || "";
+        setAdding(true);
+        try{
+            const safeTitle = title?.trim() || "Sin título";
+            const safeDescription = description?.trim() || "";
+            const safeCategory = category?.trim() || "";
 
-        const safeFrequencyValue = parseInt(frequencyValue) || 0;
-        const safeFrequencyType = frequencyType || "days";
+            const safeFrequencyValue = parseInt(frequencyValue) || 0;
+            const safeFrequencyType = frequencyType || "days";
 
-        const safeDifficulty = difficulty === "" || difficulty == null || difficulty == 0 ? 1 : Number(difficulty);
-        const safeEstimate = Estimate === "" || Estimate == null ? 0 : Number(Estimate);
+            const safeDifficulty = difficulty === "" || difficulty == null || difficulty == 0 ? 1 : Number(difficulty);
+            const safeEstimate = Estimate === "" || Estimate == null ? 0 : Number(Estimate);
 
-        let nextDueDate;
+            let nextDueDate;
 
 
-        if (editingTask) {
-            const freqChanged =
-                safeFrequencyValue !== editingTask.frequency_value ||
-                safeFrequencyType !== editingTask.frequency_type;
+            if (editingTask) {
+                const freqChanged =
+                    safeFrequencyValue !== editingTask.frequency_value ||
+                    safeFrequencyType !== editingTask.frequency_type;
 
-            if (freqChanged) {
+                if (freqChanged) {
+                    const now = new Date();
+                    if (safeFrequencyType === "days") {
+                        now.setDate(now.getDate() + safeFrequencyValue);
+                    } else { 
+                        now.setDate(now.getDate() + safeFrequencyValue * 7);
+                    }
+                    nextDueDate = now.toISOString().split("T")[0];
+                } else {
+                    nextDueDate = editingTask.next_due_date;
+                }
+            } else {
                 const now = new Date();
                 if (safeFrequencyType === "days") {
                     now.setDate(now.getDate() + safeFrequencyValue);
-                } else { 
+                } else {
                     now.setDate(now.getDate() + safeFrequencyValue * 7);
                 }
                 nextDueDate = now.toISOString().split("T")[0];
-            } else {
-                nextDueDate = editingTask.next_due_date;
             }
-        } else {
-            const now = new Date();
-            if (safeFrequencyType === "days") {
-                now.setDate(now.getDate() + safeFrequencyValue);
+
+
+            const trim = safeTitle.trim();
+            const finalTitle = getUniqueName(trim, tasks);
+
+            const newTask = {
+                homeId: currentHome.id,
+                title: finalTitle,
+                description: safeDescription,
+                category: safeCategory,
+                frequency_type: safeFrequencyType,
+                frequency_value: safeFrequencyValue,
+                next_due_date: nextDueDate,
+                member_id: selectedMember || null,
+                difficulty: safeDifficulty,
+                estimated_minutes: safeEstimate
+            };
+
+            if (editingTask) {
+                await updateTask(editingTask.assigned_id, newTask);
             } else {
-                now.setDate(now.getDate() + safeFrequencyValue * 7);
+                await addTask(newTask);
             }
-            nextDueDate = now.toISOString().split("T")[0];
+
+            setTasks(await displayTask(currentHome.id));
+            setShowSurvey(false);
+            resetFormFields();
+        } finally {
+            setAdding(false);
         }
-
-
-        const trim = safeTitle.trim();
-        const finalTitle = getUniqueName(trim, tasks);
-
-        const newTask = {
-            homeId: currentHome.id,
-            title: finalTitle,
-            description: safeDescription,
-            category: safeCategory,
-            frequency_type: safeFrequencyType,
-            frequency_value: safeFrequencyValue,
-            next_due_date: nextDueDate,
-            member_id: selectedMember || null,
-            difficulty: safeDifficulty,
-            estimated_minutes: safeEstimate
-        };
-
-        if (editingTask) {
-            await updateTask(editingTask.assigned_id, newTask);
-        } else {
-            await addTask(newTask);
-        }
-
-        setTasks(await displayTask(currentHome.id));
-        setShowSurvey(false);
-        resetFormFields();
     
     }
 
@@ -474,7 +486,7 @@ export function TaskAdd ({homes, currentHome, tasks, setTasks, members, setMembe
                 </div>
 
                 <button onClick={() => setShowSurvey(false)}>Cerrar</button>
-                <button onClick={handleAddTask}> {editingTask ? "Guardar cambios" : "Guardar Nueva Tarea"}</button>
+                <button onClick={handleAddTask} disabled={isAdding}> {editingTask ? "Guardar cambios" : "Guardar Nueva Tarea"}</button>
             </div>
             </div>
         )}
@@ -740,7 +752,7 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
             <ul>
                 {tasks.filter(t => t.status == "pending").map((t) => (
                 <li key={t.assigned_id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    {t.title} (AssignedTask ID: {t.assigned_id} Status: {t.status})
+                    {t.title}
 
                     {t.member_id ? (<span> — (Asignado a miembro: {t.member_name})</span>) : (<span> — (Sin asignar)</span>)}
 
@@ -833,72 +845,3 @@ export function TaskList ({homes, currentHome, tasks, setTasks, selectedMember, 
 
     )
 }
-
-/*
-return (
-    <div>
-        <h2>Tareas que hacer:</h2>
-
-        {tasks.filter(t => t.status === "pending").length > 0 ? (
-            <ul>
-                {tasks
-                    .filter(t => t.status === "pending")
-                    .map((t) => (
-                        <li key={t.assigned_id}>
-                            {t.title} — {t.status}
-
-                            {t.member_id ? (
-                                <span> — Asignado a {t.member_name}</span>
-                            ) : (
-                                <span> — Sin asignar</span>
-                            )}
-
-                            <button onClick={() => handleDeleteTask(t.assigned_id)}>
-                                Eliminar
-                            </button>
-
-                            {!t.member_id && (
-                                <button
-                                    disabled={!selectedMember}
-                                    onClick={() => handleAssignMember(t.assigned_id)}
-                                >
-                                    Asignar miembro
-                                </button>
-                            )}
-                        </li>
-                    ))}
-            </ul>
-        ) : (
-            <p>No hay tareas pendientes.</p>
-        )}
-
-        <h2>Tareas completadas:</h2>
-
-        {tasks.filter(t => t.status === "done").length > 0 ? (
-            <ul>
-                {tasks
-                    .filter(t => t.status === "done")
-                    .map((t) => (
-                        <li key={t.assigned_id}>
-                            {t.title} — {t.status}
-
-                            {t.member_id ? (
-                                <span> — Asignado a {t.member_name}</span>
-                            ) : (
-                                <span> — Sin asignar</span>
-                            )}
-
-                            <button onClick={() => handleDeleteTask(t.assigned_id)}>
-                                Eliminar
-                            </button>
-                        </li>
-                    ))}
-            </ul>
-        ) : (
-            <p>No hay tareas completadas.</p>
-        )}
-    </div>
-);
-
-
-*/
